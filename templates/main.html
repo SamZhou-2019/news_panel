@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEWS</title>
+
+    <style>
+        a {
+            color: white;
+            font-size: 7vh;
+            text-decoration: none;
+        }
+
+        a.link {
+            font-size: 8vh;
+        }
+
+        div.hot {
+            color: white;
+            font-size: 6vh;
+            height: 60%;
+            width: 65%;
+            top: 0%;
+            left: 0%;
+            position: fixed;
+            margin: 0%;
+            padding: 0%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        div.time {
+            font-size: 14vh;
+            color: white;
+            height: 15%;
+            width: 100%;
+            z-index: 1;
+            margin: 0%;
+            padding: 0%;
+            position: fixed;
+            bottom: 25%;
+            left: 0%;
+            background-color: rgba(0, 0, 0, 0.25);
+        }
+
+        div.weather {
+            color: white;
+            font-size: 8vh;
+            height: 9%;
+            width: 100%;
+            z-index: 1;
+            margin: 0%;
+            padding: 0%;
+            position: fixed;
+            left: 0%;
+            bottom: 16%;
+            background-color: rgba(0, 0, 0, 0.25);
+        }
+
+        marquee.m1 {
+            color: white;
+            font-size: 7vh;
+            height: 8%;
+            width: 100%;
+            z-index: 1;
+            margin: 0%;
+            padding: 0%;
+            position: fixed;
+            left: 0%;
+            bottom: 8%;
+            background-color: red;
+        }
+
+        marquee.m2 {
+            color: white;
+            font-size: 7vh;
+            height: 8%;
+            width: 100%;
+            z-index: 1;
+            margin: 0%;
+            padding: 0%;
+            position: fixed;
+            bottom: 0%;
+            left: 0%;
+            background-color: blue;
+        }
+
+        div.stock {
+            color: white;
+            font-size: 5vh;
+            height: 16%;
+            width: 25%;
+            z-index: 2;
+            margin: 0%;
+            padding: 0%;
+            position: fixed;
+            bottom: 0%;
+            left: 0%;
+            background-color: black;
+        }
+
+        div.slide,
+        div.s {
+            height: 60%;
+            width: 35%;
+            position: fixed;
+            right: 0%;
+            top: 0%;
+            z-index: 1;
+            margin: 0%;
+            padding: 0%;
+        }
+
+        img {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <!--<meta http-equiv="refresh" content="3600">-->
+</head>
+
+<body onload="startTime();"
+    style="background-color: black;background:url(../static/bg.jpg);background-size: 100vw 100vh;
+    background-repeat: no-repeat;">
+    <div class="slide">
+        <div class="s"><img id="pic" src="static/pic(0).jpg"></div>
+    </div>
+    <div id="hot" class="hot"> </div>
+    <div id="stock" class="stock"> </div>
+
+    <div id="time" class="time"></div>
+    <div class="weather" id="weather"></div>
+    <marquee class="m1">{{ it|safe }}</marquee>
+    <marquee class="m2">{{ news|safe }}</marquee>
+</body>
+
+<script>
+    // 实时显示时间
+    function startTime() {
+        var today = new Date();
+        var y = today.getFullYear();
+        var mo = today.getMonth() + 1;
+        var d = today.getDate();
+        var h = today.getHours();
+        var m = today.getMinutes();
+        var s = today.getSeconds();// 在小于10的数字前加一个‘0’
+        var weekday = new Array(7);
+        weekday[0] = "日";
+        weekday[1] = "一";
+        weekday[2] = "二";
+        weekday[3] = "三";
+        weekday[4] = "四";
+        weekday[5] = "五";
+        weekday[6] = "六";
+        var x = weekday[today.getDay()];
+        m = checkTime(m);
+        s = checkTime(s);
+        document.getElementById('time').innerHTML = y + "." + mo + "." + d + " " + x + " 🕒" + h + ":" + m + ":" + s;
+        t = setTimeout(function () {
+            startTime()
+        }, 500);
+    }
+
+    function checkTime(i) {
+        if (i < 10) {
+            i = "0" + i;
+        }
+        return i;
+    }
+
+    // 照片幻灯片
+    showSlides();
+
+    function showSlides() {
+        var pic_num = 4;
+        index = Math.floor((Math.random() * pic_num));
+        pic = "static/pic(" + index + ").jpg"
+        document.getElementById("pic").src = pic
+        setTimeout(showSlides, 10000); // 切换时间为 10 秒
+    }
+
+    // 天气
+    var w = {{ weather| safe }};
+    var wi = 0;
+    showWeather();
+    function showWeather() {
+        document.getElementById("weather").innerHTML = w[wi];
+        wi++;
+        if (wi == w.length) { wi = 0; }
+        setTimeout(showWeather, 10000); // 切换时间为 10 秒
+    }
+
+    //知乎/B站/百度/微博热榜
+    var h = {{ hot| safe }};
+    var hi = 0;
+    showHot();
+    function showHot() {
+        document.getElementById("hot").innerHTML = h[hi];
+        hi++;
+        if (hi == h.length) { hi = 0; }
+        setTimeout(showHot, 5000); // 切换时间为 5 秒
+    }
+
+    //股票数据实时更新
+    var s = ["sh000001", "sz399001", "sh000300", "sz399006", "sh000016", "sz399005"];
+    var si = 0;
+    function getStock() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://qt.gtimg.cn/q=s_" + s[si], false);  //建立连接
+        xhr.send();  //发送请求
+        name_ = xhr.responseText.split("~")[1];
+        value = xhr.responseText.split("~")[3];
+        change = xhr.responseText.split("~")[4];
+        change_per = xhr.responseText.split("~")[5];
+        if (change_per < 0) {
+            change = '<p style="color:green;margin:0px;">▼' + change_per + '% ' + change + '</p>';
+        }
+        else {
+            change = '<p style="color:red;margin:0px;">▲' + change_per + '% ' + change + '</p>';
+        }
+        document.getElementById("stock").innerHTML = name_ + ' ' + value + change; //接收数据
+        si++;
+        if (si == s.length) { si = 0; }
+        setTimeout(getStock, 5000); // 切换时间为 5 秒
+    }
+    getStock();
+
+</script>
+
+</html>
